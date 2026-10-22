@@ -80,8 +80,8 @@ namespace Videojuego
         private Rectangle _refugio;
 
         // CAMARA Y MAPA (Nuevas variables agregadas)
-        private int _anchoMapa = 4000; // Tamaño actual de tu mapa
-        private int _altoMapa = 4000;  // Tamaño actual de tu mapa
+        private int _anchoMapa = 4000; // Tamaño actual del mapa
+        private int _altoMapa = 4000;  // Tamaño actual del mapa
         private Matrix _camaraMatriz;  // Guardará la transformación de la cámara
 
         // Botón general para regresar
@@ -178,7 +178,7 @@ namespace Videojuego
                         _salud -= 10;
                     }
 
-                    // NUEVO: Sistema de Moral segun el refugio
+                    // Sistema de Moral segun el refugio
                     Rectangle rectJugadorTemp = new Rectangle((int)_posicionJugador.X, (int)_posicionJugador.Y, _tamanoJugador, _tamanoJugador);
                     if (_refugioconstruido && rectJugadorTemp.Intersects(_refugio))
                     {
@@ -331,7 +331,7 @@ namespace Videojuego
                     }
                 }
 
-                // NUEVO: Calculo de la Camara para seguir al jugador
+                // Calculo de la Camara para seguir al jugador
                 Vector2 centroJugador = new Vector2(_posicionJugador.X + (_tamanoJugador / 2), _posicionJugador.Y + (_tamanoJugador / 2));
                 _camaraMatriz = Matrix.CreateTranslation(new Vector3(-centroJugador.X, -centroJugador.Y, 0)) *
                                 Matrix.CreateTranslation(new Vector3(_graphics.PreferredBackBufferWidth / 2f, _graphics.PreferredBackBufferHeight / 2f, 0));
@@ -391,7 +391,7 @@ namespace Videojuego
             }
             else if (_estadoActual == EstadoJuego.Jugando)
             {
-                // NUEVO: Dibujo del Mundo con Camara
+                //Dibujo del Mundo con Camara
                 _spriteBatch.Begin(transformMatrix: _camaraMatriz);
 
                 // sprite del mapa (provisional)
@@ -430,7 +430,7 @@ namespace Videojuego
                 _spriteBatch.End();
 
 
-                // NUEVO: Dibujo del HUD Fijo en Pantalla (sin camara)
+                //Dibujo del HUD Fijo en Pantalla (sin camara)
                 _spriteBatch.Begin();
 
                 // Marcador para ver las estadisticas o diferentes atributos del jugador
