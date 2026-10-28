@@ -39,6 +39,9 @@ namespace Videojuego
         private Texture2D _jugadorTexture;
         private Texture2D _mapaTexture;
 
+        //menú
+        private Texture2D _menuTexture;
+
 
 
         //Sprite de pantalla de game over
@@ -91,7 +94,7 @@ namespace Videojuego
 
         //Refugio
         private Rectangle _refugio;
-        
+
         //Este va a ser un "monstruo que siga al jugador
         private Rectangle _monstruo;
 
@@ -132,9 +135,9 @@ namespace Videojuego
 
 
             // Posiciones del Menú Principal
-            _btnIniciar = new Rectangle(810, 250, 300, 80);   // Iniciar (Verde)
-            _btnHistorial = new Rectangle(810, 400, 300, 80); // Historial (Azul)
-            _btnSalir = new Rectangle(810, 550, 300, 80);      // Salir (Rojo)
+            _btnIniciar = new Rectangle(20, 450, 600, 80);   // Iniciar (Verde)
+            _btnHistorial = new Rectangle(0, 560, 600, 80); // Historial (Azul)
+            _btnSalir = new Rectangle(0, 680, 600, 80);      // Salir (Rojo)
 
             // Botón Volver
             _btnVolverMenu = new Rectangle(20, 20, 120, 40);  // Volver (Gris)
@@ -165,7 +168,7 @@ namespace Videojuego
             _mapaRecursos[19] = new Recurso { Area = new Rectangle(600, 450, 25, 25), Tipo = TipoRecurso.Madera, Activo = true };
 
             //moustro
-            _monstruo = new Rectangle(1700,900,50,50);
+            _monstruo = new Rectangle(1700, 900, 50, 50);
 
             base.Initialize();
         }
@@ -177,8 +180,10 @@ namespace Videojuego
             _mapaTexture = Content.Load<Texture2D>("mapa bosque");
             //Sprite de mapa (provisional)
 
-            _GameOverTexture = Content.Load<Texture2D>("GameOver");// game over
+            _GameOverTexture = Content.Load<Texture2D>("GameOver");// Pantalla de game over
 
+            //Sprite del menú
+            _menuTexture = Content.Load<Texture2D>("menu.png");
 
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -228,23 +233,23 @@ namespace Videojuego
                     {
                         _climaActual = "Lluvia";
 
-                            if (!dentroDelRefugio)
-                            {
-                                _salud -= 5;
-                                _moral -= 5;
-                            }
-                        
+                        if (!dentroDelRefugio)
+                        {
+                            _salud -= 5;
+                            _moral -= 5;
+                        }
+
 
                     }
                     else if (clima == 2)
                     {
                         _climaActual = "Tormenta";
-                        
-                            if (!dentroDelRefugio)
-                            {
-                                _salud -= 15;
-                                _energia -= 20;
-                            }
+
+                        if (!dentroDelRefugio)
+                        {
+                            _salud -= 15;
+                            _energia -= 20;
+                        }
 
                         if (_refugioconstruido) //Hace que cuando haya tormenta la casa pierda vida
                         {
@@ -264,9 +269,9 @@ namespace Videojuego
                     else if (clima == 3)
                     {
                         _climaActual = "Ola de Calor";
-                        
-                            _hambre -= 2;
-                        
+
+                        _hambre -= 2;
+
                     }
                     else
                     {
@@ -370,7 +375,7 @@ namespace Videojuego
                 }
 
                 // al llegar al dia 5 el moustro aparece
-                if (_diaActual >= 5)
+                if (_diaActual >= 10)
                 {
                     _monstruoActivo = true;
                 }
@@ -419,12 +424,7 @@ namespace Videojuego
                     {
                         _salud -= 20;
 
-                        _monstruo = new Rectangle(
-                            _random.Next(100, 1800),
-                            _random.Next(100, 900),
-                            50,
-                            50
-                        );
+                        _monstruo = new Rectangle(_random.Next(100, 1800), _random.Next(100, 900), 50, 50);
                     }
                 }
 
@@ -585,13 +585,11 @@ namespace Videojuego
                 GraphicsDevice.Clear(Color.CornflowerBlue);
 
                 // Botones del Menú Principal
-                _spriteBatch.Draw(_pixeles, _btnIniciar, Color.Green);     // Botón de Iniciar
-                _spriteBatch.Draw(_pixeles, _btnHistorial, Color.DodgerBlue); // Botón de Historial
-                _spriteBatch.Draw(_pixeles, _btnSalir, Color.Red);          // Botón de Salir
+                _spriteBatch.Draw(_menuTexture, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight), Color.White);
 
-                _spriteBatch.DrawString(_fuente, "JUGAR", new Vector2(_btnIniciar.X + 90, _btnIniciar.Y + 25), Color.White);
-                _spriteBatch.DrawString(_fuente, "HISTORIAL", new Vector2(_btnHistorial.X + 70, _btnHistorial.Y + 25), Color.White);
-                _spriteBatch.DrawString(_fuente, "SALIR", new Vector2(_btnSalir.X + 100, _btnSalir.Y + 25), Color.White);
+                // _spriteBatch.DrawString(_fuente, "JUGAR", new Vector2(_btnIniciar.X + 90, _btnIniciar.Y + 25), Color.White);
+                // _spriteBatch.DrawString(_fuente, "HISTORIAL", new Vector2(_btnHistorial.X + 70, _btnHistorial.Y + 25), Color.White);
+                // _spriteBatch.DrawString(_fuente, "SALIR", new Vector2(_btnSalir.X + 100, _btnSalir.Y + 25), Color.White);
                 _spriteBatch.End();
             }
             else if (_estadoActual == EstadoJuego.Jugando)
@@ -620,7 +618,7 @@ namespace Videojuego
                     colorClima = Color.LightGray;
                 }
 
-                _spriteBatch.Draw(_mapaTexture,new Rectangle(0, 0, _anchoMapa, _altoMapa),colorClima);
+                _spriteBatch.Draw(_mapaTexture, new Rectangle(0, 0, _anchoMapa, _altoMapa), colorClima);
 
 
                 //Dibujo de refugio
@@ -630,8 +628,8 @@ namespace Videojuego
                 }
 
                 if (_monstruoActivo)
-                { 
-                    _spriteBatch.Draw(_pixeles, _monstruo, Color.Red );
+                {
+                    _spriteBatch.Draw(_pixeles, _monstruo, Color.Red);
                 }
 
                 for (int i = 0; i < _mapaRecursos.Length; i++)
@@ -682,8 +680,9 @@ namespace Videojuego
                 _spriteBatch.DrawString(_fuente, "[C] Comer", new Vector2(1700, 250), Color.Red);
                 _spriteBatch.DrawString(_fuente, "[B] Tomar Agua", new Vector2(1700, 280), Color.Red);
                 _spriteBatch.DrawString(_fuente, "[T] Construir Casa", new Vector2(1700, 310), Color.Red);
-                _spriteBatch.DrawString(_fuente,"Casa: " + _vidaRefugio,new Vector2(1700, 400),Color.White);
-                _spriteBatch.DrawString(_fuente,"Record: " + _recordDias,new Vector2(1700, 360),Color.Yellow);
+                _spriteBatch.DrawString(_fuente, "[R] Reparar la Casa", new Vector2(1700, 340), Color.Red);
+                _spriteBatch.DrawString(_fuente, "Casa: " + _vidaRefugio, new Vector2(1700, 400), Color.White);
+                _spriteBatch.DrawString(_fuente, "Record: " + _recordDias, new Vector2(1700, 360), Color.Yellow);
 
                 // Botón Volver al Menú
                 _spriteBatch.Draw(_pixeles, _btnVolverMenu, Color.Gray);
@@ -710,3 +709,5 @@ namespace Videojuego
         }
     }
 }
+
+
