@@ -7,12 +7,7 @@ namespace Videojuego
     
     public static class ConexionBD
     {
-        private static string cadenaConexion =
-            "server=localhost;" +
-            "port=3306;" +
-            "database=survival_story;" +
-            "uid=root;" +
-            "pwd=;";
+        private static string cadenaConexion ="server=localhost;" +"port=3306;" +"database=survival_story;" + "uid=root;" + "pwd=;";
 
         public static MySqlConnection ObtenerConexion()
         {
@@ -21,26 +16,21 @@ namespace Videojuego
 
         public static int IdPartidaActual = 0;
 
-        public static void GuardarPartida(int resultado)
+        public static void GuardarPartida(int resultado,int dias)
         {
             using (var conexion = ObtenerConexion())
             {
                 conexion.Open();
 
-                string sql =
-                "INSERT INTO partida(id_jugador,fecha_inicio,resultado) " + "VALUES(1,CURDATE(),@resultado)";
+                string sql = "INSERT INTO partida(id_jugador, fecha_inicio, resultado, dias_sobrevividos)VALUES(1, CURDATE(), @resultado, @dias)";
+                MySqlCommand comando = new MySqlCommand(sql, conexion);
 
-                MySqlCommand comando =
-                    new MySqlCommand(sql, conexion);
-
-                comando.Parameters.AddWithValue(
-                    "@resultado",
-                    resultado);
+                comando.Parameters.AddWithValue("@resultado",resultado);
+                comando.Parameters.AddWithValue("@dias",dias);
 
                 comando.ExecuteNonQuery();
 
-                IdPartidaActual =
-                    (int)comando.LastInsertedId;
+                IdPartidaActual = (int)comando.LastInsertedId;
             }
         }
 
@@ -52,8 +42,7 @@ namespace Videojuego
 
                 string sql = "INSERT INTO estado_jugador " + "(id_partida,salud,hambre,energia,moral,dia_actual) " + "VALUES(@idpartida,@salud,@hambre,@energia,@moral,CURDATE())";
 
-                MySqlCommand comando =
-                new MySqlCommand(sql, conexion);
+                MySqlCommand comando = new MySqlCommand(sql, conexion);
 
                 comando.Parameters.AddWithValue("@salud", salud);
                 comando.Parameters.AddWithValue("@hambre", hambre);
@@ -71,8 +60,7 @@ namespace Videojuego
                 conexion.Open();
                 string sql = "INSERT INTO inventario " +"(id_partida,id_objeto,cantidad) " +"VALUES " +"(@idpartida,1,@comida)," +"(@idpartida,2,@agua)," +"(@idpartida,3,@madera)";
 
-                MySqlCommand comando =
-                new MySqlCommand(sql, conexion);
+                MySqlCommand comando = new MySqlCommand(sql, conexion);
 
                 comando.Parameters.AddWithValue("@comida", comida);
                 comando.Parameters.AddWithValue("@agua", agua);
@@ -89,38 +77,26 @@ namespace Videojuego
             {
                 conexion.Open();
 
-                string sql =
-                "INSERT INTO evento(titulo,descripcion) " +
-                "VALUES(@nombre,@nombre)";
+                string sql = "INSERT INTO evento(titulo,descripcion) " + "VALUES(@nombre,@nombre)";
 
-                MySqlCommand comando =
-                    new MySqlCommand(sql, conexion);
+                MySqlCommand comando = new MySqlCommand(sql, conexion);
 
-                comando.Parameters.AddWithValue(
-                    "@nombre",
-                    nombre);
+                comando.Parameters.AddWithValue("@nombre",nombre);
 
                 comando.ExecuteNonQuery();
             }
         }
-        public static void GuardarDecision(
-string decision)
+        public static void GuardarDecision(string decision)
         {
             using (var conexion = ObtenerConexion())
             {
                 conexion.Open();
 
-                string sql =
-                "INSERT INTO opcion_decision " +
-                "(id_evento,texto_opcion) " +
-                "VALUES(1,@texto)";
+                string sql ="INSERT INTO opcion_decision " +"(id_evento,texto_opcion) " +"VALUES(1,@texto)";
 
-                MySqlCommand comando =
-                    new MySqlCommand(sql, conexion);
+                MySqlCommand comando = new MySqlCommand(sql, conexion);
 
-                comando.Parameters.AddWithValue(
-                    "@texto",
-                    decision);
+                comando.Parameters.AddWithValue("@texto",decision);
 
                 comando.ExecuteNonQuery();
             }
@@ -131,13 +107,9 @@ string decision)
             {
                 conexion.Open();
 
-                string sql =
-                "INSERT INTO efecto_decision " +
-                "(id_opcion,stat_afectado,valor_cambio) " +
-                "VALUES(1,1,@valor)";
+                string sql ="INSERT INTO efecto_decision " +"(id_opcion,stat_afectado,valor_cambio) " + "VALUES(1,1,@valor)";
 
-                MySqlCommand comando =
-                    new MySqlCommand(sql, conexion);
+                MySqlCommand comando = new MySqlCommand(sql, conexion);
 
                 comando.Parameters.AddWithValue("@valor",valor);
 
@@ -146,32 +118,22 @@ string decision)
         }
         public static List<string> ObtenerHistorial()
         {
-            List<string> historial =
-                new List<string>();
+            List<string> historial = new List<string>();
 
             using (var conexion = ObtenerConexion())
             {
                 conexion.Open();
 
-                string sql =
-                "SELECT id_partida, resultado " +
-                "FROM partida " +
-                "ORDER BY id_partida DESC " +
-                "LIMIT 5";
+                string sql ="SELECT id_partida, dias_sobrevividos, resultado " +"FROM partida " +"ORDER BY id_partida DESC " +"LIMIT 5";
 
-                MySqlCommand comando =
-                    new MySqlCommand(sql, conexion);
 
-                MySqlDataReader lector =
-                    comando.ExecuteReader();
+                MySqlCommand comando = new MySqlCommand(sql, conexion);
+
+                MySqlDataReader lector = comando.ExecuteReader();
 
                 while (lector.Read())
                 {
-                    historial.Add(
-                    "Partida " +
-                    lector["id_partida"] +
-                    " Resultado: " +
-                    lector["resultado"]);
+                    historial.Add("Partida #" +lector["id_partida"] +"   |   Dias sobrevividos: " +lector["dias_sobrevividos"]);
                 }
             }
 
@@ -179,3 +141,4 @@ string decision)
         }
     }
 }
+
