@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MySql.Data.MySqlClient;
+
 
 namespace Videojuego
 {
@@ -40,6 +40,8 @@ namespace Videojuego
         private Texture2D _jugadorTexture;
         private Texture2D _mapaTexture;
 
+        private Texture2D _monstruoTexture;
+
         //menú
         private Texture2D _menuTexture;
 
@@ -76,7 +78,7 @@ namespace Videojuego
         //variable para que nos de un evento aleatorio
         private Random _random = new Random();
 
-        //variable para saber el evento actual
+        
         
         private string _climaActual = "Normal";
 
@@ -210,6 +212,8 @@ namespace Videojuego
             //Sprite de jugador 
             _jugadorTexture = Content.Load<Texture2D>("jugador");
 
+            _monstruoTexture = Content.Load<Texture2D>("monstruo");
+
             //Sprite de mapa 
             _mapaTexture = Content.Load<Texture2D>("mapa bosque");
             
@@ -258,12 +262,12 @@ namespace Videojuego
                 }
 
                 // Esto hace que vaya pasando el dia luego de 10 segundos (por Ahora).Tambien se encarga de hacer funcionar el sistema de "Supervivencia"
-                if (_tiempoDia >= 10f)
+                if (_tiempoDia >= 20f)
                 {
                     _diaActual++;
                     _tiempoDia = 0f;
-                    _hambre--;
-                    _energia -= 10;
+                    _hambre -= 5;
+                    _energia -= 8;
 
                     //sistema de eventos
                     int clima = _random.Next(5);
@@ -274,17 +278,15 @@ namespace Videojuego
                     }
                     else if (clima == 1)
                     {
-                        if (_climaActual == "Lluvia")
-                        {
-                            if (!dentroDelRefugio)
-                            {
-                                _salud -= 5;
-                                _moral -= 5;
-                            }
-                        }
+                        _climaActual = "Lluvia";
+
                         ConexionBD.GuardarEvento("Lluvia");
 
-
+                        if (!dentroDelRefugio)
+                        {
+                            _salud -= 5;
+                            _moral -= 5;
+                        }
                     }
                     else if (clima == 2)
                     {
@@ -448,7 +450,7 @@ namespace Videojuego
 
                 if (_salud <= 0)
                 {
-                    ConexionBD.GuardarPartida(0); //guarda el game over en la base de datos
+                    ConexionBD.GuardarPartida(0,_diaActual); //guarda el game over en la base de datos
 
                     ConexionBD.GuardarEstadoJugador(_salud,_hambre,_energia,_moral);
 
@@ -591,6 +593,12 @@ namespace Videojuego
                         _hambre += 30; // Recupera 30 de hambre
                         ConexionBD.GuardarDecision("Comer");
                         ConexionBD.GuardarEfecto(30);
+                        _salud += 10;
+
+                        if (_salud > 100)
+                        {
+                            _salud = 100;
+                        }
 
                         // Tope máximo de hambre en 100
                         if (_hambre > 100)
@@ -764,8 +772,11 @@ namespace Videojuego
                 }
 
                 if (_monstruoActivo)
-                { 
-                    _spriteBatch.Draw(_pixeles, _monstruo, Color.Red );
+                {
+                    _spriteBatch.Draw(
+    _monstruoTexture,
+    _monstruo,
+    Color.White);
                 }
 
                 for (int i = 0; i < _mapaRecursos.Length; i++)
@@ -836,7 +847,7 @@ namespace Videojuego
                 _spriteBatch.DrawString(
                 _fuente,
                 "ULTIMAS PARTIDAS",
-                new Vector2(700, 100),
+                new Vector2(650, 100),
                 Color.Yellow);
 
                 for (int i = 0; i < 5; i++)
@@ -848,7 +859,7 @@ namespace Videojuego
                         _historial[i],
                         new Vector2(
                             600,
-                            200 + (i * 60)),
+                            200 + (i * 100)),
                         Color.White);
                     }
                 }
@@ -880,4 +891,3 @@ namespace Videojuego
         }
     }
 }
-
