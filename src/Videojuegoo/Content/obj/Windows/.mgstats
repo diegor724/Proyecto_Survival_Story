@@ -1,0 +1,11 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/../../../../../Downloads/monstruo.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/monstruo.xnb","TextureProcessor","Texture2DContent",4995,1766485,0.1767964
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/agua.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/agua.xnb","TextureProcessor","Texture2DContent",1581,78485,0.004473
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/casa.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/casa.xnb","TextureProcessor","Texture2DContent",396502,1638485,0.0559185
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/comida.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/comida.xnb","TextureProcessor","Texture2DContent",296,102485,0.0043696
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/File.spritefont","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/File.xnb","FontDescriptionProcessor","SpriteFontContent",2068,21530,0.089557
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/GameOver.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/GameOver.xnb","TextureProcessor","Texture2DContent",77110,8640085,0.1865001
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/jugador.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/jugador.xnb","TextureProcessor","Texture2DContent",5492,2560085,0.0626674
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/Madera.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/madera.xnb","TextureProcessor","Texture2DContent",34196,5308501,0.1390387
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/mapa bosque.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/mapa bosque.xnb","TextureProcessor","Texture2DContent",163576,2396245,0.091173
+"C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/menu.png.png","C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/bin/Windows/menu.png.xnb","TextureProcessor","Texture2DContent",162267,4194389,0.1434243

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SourceFileCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Profile>Reach</Profile>
+  <Platform>Windows</Platform>
+  <Config />
+  <SourceFiles>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/../../../../../Downloads/monstruo.png</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/agua.png</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/casa.png</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/comida.png</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/File.spritefont</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/GameOver.png</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/jugador.png</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/Madera.png</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/mapa bosque.png</File>
+    <File>C:/Users/Oscar/source/repos/Videojuegoo/Videojuegoo/Content/menu.png.png</File>
+  </SourceFiles>
+  <DestFiles>
+    <File>monstruo.png</File>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File>madera.png</File>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+  </DestFiles>
+</SourceFileCollection>
