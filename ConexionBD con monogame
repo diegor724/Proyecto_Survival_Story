@@ -1,0 +1,181 @@
+using System;
+using System.Collections.Generic;
+using MySql.Data.MySqlClient;
+
+namespace Videojuego
+{
+    
+    public static class ConexionBD
+    {
+        private static string cadenaConexion =
+            "server=localhost;" +
+            "port=3306;" +
+            "database=survival_story;" +
+            "uid=root;" +
+            "pwd=;";
+
+        public static MySqlConnection ObtenerConexion()
+        {
+            return new MySqlConnection(cadenaConexion);
+        }
+
+        public static int IdPartidaActual = 0;
+
+        public static void GuardarPartida(int resultado)
+        {
+            using (var conexion = ObtenerConexion())
+            {
+                conexion.Open();
+
+                string sql =
+                "INSERT INTO partida(id_jugador,fecha_inicio,resultado) " + "VALUES(1,CURDATE(),@resultado)";
+
+                MySqlCommand comando =
+                    new MySqlCommand(sql, conexion);
+
+                comando.Parameters.AddWithValue(
+                    "@resultado",
+                    resultado);
+
+                comando.ExecuteNonQuery();
+
+                IdPartidaActual =
+                    (int)comando.LastInsertedId;
+            }
+        }
+
+        public static void GuardarEstadoJugador(int salud,int hambre,int energia,int moral)
+        {
+            using (var conexion = ObtenerConexion())
+            {
+                conexion.Open();
+
+                string sql = "INSERT INTO estado_jugador " + "(id_partida,salud,hambre,energia,moral,dia_actual) " + "VALUES(@idpartida,@salud,@hambre,@energia,@moral,CURDATE())";
+
+                MySqlCommand comando =
+                new MySqlCommand(sql, conexion);
+
+                comando.Parameters.AddWithValue("@salud", salud);
+                comando.Parameters.AddWithValue("@hambre", hambre);
+                comando.Parameters.AddWithValue("@energia", energia);
+                comando.Parameters.AddWithValue("@moral", moral);
+                comando.Parameters.AddWithValue("@idpartida",IdPartidaActual);
+
+                comando.ExecuteNonQuery();
+            }
+        }
+        public static void GuardarInventario(int comida,int agua,int madera)
+        {
+            using (var conexion = ObtenerConexion())
+            {
+                conexion.Open();
+                string sql = "INSERT INTO inventario " +"(id_partida,id_objeto,cantidad) " +"VALUES " +"(@idpartida,1,@comida)," +"(@idpartida,2,@agua)," +"(@idpartida,3,@madera)";
+
+                MySqlCommand comando =
+                new MySqlCommand(sql, conexion);
+
+                comando.Parameters.AddWithValue("@comida", comida);
+                comando.Parameters.AddWithValue("@agua", agua);
+                comando.Parameters.AddWithValue("@madera", madera);
+                comando.Parameters.AddWithValue("@idpartida",IdPartidaActual);
+
+
+                comando.ExecuteNonQuery();
+            }
+        }
+        public static void GuardarEvento(string nombre)
+        {
+            using (var conexion = ObtenerConexion())
+            {
+                conexion.Open();
+
+                string sql =
+                "INSERT INTO evento(titulo,descripcion) " +
+                "VALUES(@nombre,@nombre)";
+
+                MySqlCommand comando =
+                    new MySqlCommand(sql, conexion);
+
+                comando.Parameters.AddWithValue(
+                    "@nombre",
+                    nombre);
+
+                comando.ExecuteNonQuery();
+            }
+        }
+        public static void GuardarDecision(
+string decision)
+        {
+            using (var conexion = ObtenerConexion())
+            {
+                conexion.Open();
+
+                string sql =
+                "INSERT INTO opcion_decision " +
+                "(id_evento,texto_opcion) " +
+                "VALUES(1,@texto)";
+
+                MySqlCommand comando =
+                    new MySqlCommand(sql, conexion);
+
+                comando.Parameters.AddWithValue(
+                    "@texto",
+                    decision);
+
+                comando.ExecuteNonQuery();
+            }
+        }
+        public static void GuardarEfecto(int valor)
+        {
+            using (var conexion = ObtenerConexion())
+            {
+                conexion.Open();
+
+                string sql =
+                "INSERT INTO efecto_decision " +
+                "(id_opcion,stat_afectado,valor_cambio) " +
+                "VALUES(1,1,@valor)";
+
+                MySqlCommand comando =
+                    new MySqlCommand(sql, conexion);
+
+                comando.Parameters.AddWithValue("@valor",valor);
+
+                comando.ExecuteNonQuery();
+            }
+        }
+        public static List<string> ObtenerHistorial()
+        {
+            List<string> historial =
+                new List<string>();
+
+            using (var conexion = ObtenerConexion())
+            {
+                conexion.Open();
+
+                string sql =
+                "SELECT id_partida, resultado " +
+                "FROM partida " +
+                "ORDER BY id_partida DESC " +
+                "LIMIT 5";
+
+                MySqlCommand comando =
+                    new MySqlCommand(sql, conexion);
+
+                MySqlDataReader lector =
+                    comando.ExecuteReader();
+
+                while (lector.Read())
+                {
+                    historial.Add(
+                    "Partida " +
+                    lector["id_partida"] +
+                    " Resultado: " +
+                    lector["resultado"]);
+                }
+            }
+
+            return historial;
+        }
+    }
+}
