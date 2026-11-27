@@ -1,0 +1,893 @@
+﻿using System;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+
+
+namespace Videojuego
+{
+    public enum EstadoJuego //Tipos de Estados del juego
+    {
+        Menu,
+        Jugando,
+        Historial,
+        GameOver
+    }
+    public enum TipoRecurso //Tipos de Recursos que vamos a encontrar en el mapa
+    {
+        Comida,
+        Agua,
+        Madera
+
+    }
+    public struct Recurso // Esctructura para representar uno de los recursos en el mapa
+    {
+        public Rectangle Area; // Posición y tamaño del recurso
+        public TipoRecurso Tipo; // Si es comida, agua o madera
+        public bool Activo; // para saber si el recurso se encuentra en el mapa o fue recogido 
+    }
+
+    public class Game1 : Game
+    {
+        private string[] _historial = new string[5];
+
+        private GraphicsDeviceManager _graphics;
+        private SpriteBatch _spriteBatch;
+
+        private Texture2D _pixeles;
+
+        //jugador y mapa
+        private Texture2D _jugadorTexture;
+        private Texture2D _mapaTexture;
+
+        private Texture2D _monstruoTexture;
+
+        //menú
+        private Texture2D _menuTexture;
+
+        //recursos
+        private Texture2D _maderaTexture;
+        private Texture2D _aguaTexture;
+        private Texture2D _comidaTexture;
+
+        //sprite de la casa
+        private Texture2D _casaTexture;
+
+        //Sprite de pantalla de game over
+        private Texture2D _GameOverTexture;
+
+        //Tipo de fuente para el texto
+        private SpriteFont _fuente;
+
+        //Dia/tiempo
+        private int _diaActual = 1;
+        private float _tiempoDia = 0f;
+
+        //Estadisticas
+        private int _energia = 100;
+        private int _hambre = 100;
+        private int _salud = 100;
+        private int _moral = 100;
+
+        //variable de vida de refugio
+        private int _vidaRefugio = 100;
+
+        //record de días
+        private int _recordDias = 0;
+
+        //variable para que nos de un evento aleatorio
+        private Random _random = new Random();
+
+        
+        
+        private string _climaActual = "Normal";
+
+        // Inventario
+        private int _inventarioComida = 0;
+        private int _inventarioAgua = 0;
+        private int _inventarioMadera = 0;
+
+
+        private bool _refugioconstruido = false;
+
+        // Array para guardar los recursos del mapa
+        private Recurso[] _mapaRecursos = new Recurso[20];
+
+        // Para detectar una sola pulsación en un boton:
+        private KeyboardState _tecladoAnterior;
+
+        // Botones del Menú Principal
+        private Rectangle _btnIniciar;
+        private Rectangle _btnHistorial;
+        private Rectangle _btnSalir;
+
+        //Refugio
+        private Rectangle _refugio;
+        
+        //Este va a ser un "monstruo que siga al jugador
+        private Rectangle _monstruo;
+
+        private bool _monstruoActivo = false;
+
+        private float _velocidadMonstruo = 60f;
+
+        private float _temporizadorAtaqueCasa = 0f;
+
+        // CAMARA Y MAPA 
+        private int _anchoMapa = 1920; // Tamaño actual de mapa
+        private int _altoMapa = 1080;  // Tamaño actual de mapa
+        private Matrix _camaraMatriz;  // Guardará la transformación de la cámara
+
+        // Botón general para regresar
+        private Rectangle _btnVolverMenu;
+
+        // Propiedades del Jugador
+        private Vector2 _posicionJugador;
+        private float _velocidadJugador = 250f; // Pixeles por segundo
+        private int _tamanoJugador = 50;
+
+        private EstadoJuego _estadoActual = EstadoJuego.Menu;
+        private MouseState _mouseAnterior;
+
+        private Rectangle[] _obstaculos = new Rectangle[6];
+
+
+
+        public Game1()
+        {
+            _graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+            IsMouseVisible = true;
+
+            _graphics.PreferredBackBufferWidth = 1920;
+            _graphics.PreferredBackBufferHeight = 1080;
+        }
+
+        protected override void Initialize()
+        {
+
+
+            // Posiciones del Menú Principal
+            _btnIniciar = new Rectangle(20, 450, 600, 80);   // Iniciar (Verde)
+            _btnHistorial = new Rectangle(0,560,600,80); // Historial (Azul)
+            _btnSalir = new Rectangle(0, 680, 600, 80);      // Salir (Rojo)
+
+            // Botón Volver
+            _btnVolverMenu = new Rectangle(20, 20, 120, 40);  // Volver (Gris)
+
+            // Posición inicial del jugador en el centro de la pantalla
+            _posicionJugador = new Vector2(400 - (_tamanoJugador / 2), 300 - (_tamanoJugador / 2));
+
+            //Ponemos los recursos en el mapa con posiciones y tamaños estáticos
+            // COMIDA (claros del bosque)
+            _mapaRecursos[0] = new Recurso { Area = new Rectangle(700, 280, 20, 20), Tipo = TipoRecurso.Comida, Activo = true };
+            _mapaRecursos[1] = new Recurso { Area = new Rectangle(850, 300, 20, 20), Tipo = TipoRecurso.Comida, Activo = true };
+            _mapaRecursos[2] = new Recurso { Area = new Rectangle(1050, 280, 20, 20), Tipo = TipoRecurso.Comida, Activo = true };
+            _mapaRecursos[3] = new Recurso { Area = new Rectangle(1250, 350, 20, 20), Tipo = TipoRecurso.Comida, Activo = true };
+            _mapaRecursos[4] = new Recurso { Area = new Rectangle(950, 200, 20, 20), Tipo = TipoRecurso.Comida, Activo = true };
+
+            // AGUA (lago)
+            _mapaRecursos[5] = new Recurso { Area = new Rectangle(850, 620, 20, 20), Tipo = TipoRecurso.Agua, Activo = true };
+            _mapaRecursos[6] = new Recurso { Area = new Rectangle(950, 650, 20, 20), Tipo = TipoRecurso.Agua, Activo = true };
+            _mapaRecursos[7] = new Recurso { Area = new Rectangle(1050, 620, 20, 20), Tipo = TipoRecurso.Agua, Activo = true };
+            _mapaRecursos[8] = new Recurso { Area = new Rectangle(1150, 650, 20, 20), Tipo = TipoRecurso.Agua, Activo = true };
+            _mapaRecursos[9] = new Recurso { Area = new Rectangle(1000, 720, 20, 20), Tipo = TipoRecurso.Agua, Activo = true };
+
+            // MADERA (bosque izquierdo)
+            _mapaRecursos[10] = new Recurso { Area = new Rectangle(220, 220, 25, 25), Tipo = TipoRecurso.Madera, Activo = true };
+            _mapaRecursos[11] = new Recurso { Area = new Rectangle(250, 500, 25, 25), Tipo = TipoRecurso.Madera, Activo = true };
+            _mapaRecursos[12] = new Recurso { Area = new Rectangle(300, 750, 25, 25), Tipo = TipoRecurso.Madera, Activo = true };
+
+            // MADERA (bosque derecho)
+            _mapaRecursos[13] = new Recurso { Area = new Rectangle(1500, 220, 25, 25), Tipo = TipoRecurso.Madera, Activo = true };
+            _mapaRecursos[14] = new Recurso { Area = new Rectangle(1600, 450, 25, 25), Tipo = TipoRecurso.Madera, Activo = true };
+            _mapaRecursos[15] = new Recurso { Area = new Rectangle(1550, 800, 25, 25), Tipo = TipoRecurso.Madera, Activo = true };
+
+            // MÁS COMIDA
+            _mapaRecursos[16] = new Recurso { Area = new Rectangle(700, 450, 20, 20), Tipo = TipoRecurso.Comida, Activo = true };
+            _mapaRecursos[17] = new Recurso { Area = new Rectangle(1200, 450, 20, 20), Tipo = TipoRecurso.Comida, Activo = true };
+            _mapaRecursos[18] = new Recurso { Area = new Rectangle(950, 400, 20, 20), Tipo = TipoRecurso.Comida, Activo = true };
+
+            // AGUA EXTRA CERCA DEL LAGO
+            _mapaRecursos[19] = new Recurso { Area = new Rectangle(900, 700, 20, 20), Tipo = TipoRecurso.Agua, Activo = true };
+
+            //moustro
+            _monstruo = new Rectangle(1700,900,50,50);
+
+            //Obstaculos que no permiten que el jugador atraviese ciertos arboles
+           // _obstaculos[0] = new Rectangle(300, 150, 80, 80);
+           // _obstaculos[1] = new Rectangle(520, 180, 80, 80);
+           // _obstaculos[2] = new Rectangle(1450, 250, 80, 80);
+           // _obstaculos[3] = new Rectangle(1600, 500, 80, 80);
+           // _obstaculos[4] = new Rectangle(300, 650, 80, 80);
+           // _obstaculos[5] = new Rectangle(1500, 800, 80, 80);
+
+           
+
+            base.Initialize();
+        }
+
+        protected override void LoadContent()
+        {
+            //Sprite de jugador 
+            _jugadorTexture = Content.Load<Texture2D>("jugador");
+
+            _monstruoTexture = Content.Load<Texture2D>("monstruo");
+
+            //Sprite de mapa 
+            _mapaTexture = Content.Load<Texture2D>("mapa bosque");
+            
+            //sprite de los recursos:
+            _maderaTexture = Content.Load<Texture2D>("madera");
+            _aguaTexture = Content.Load<Texture2D>("agua");
+            _comidaTexture = Content.Load<Texture2D>("comida");
+
+            //sprite de la casa
+            _casaTexture = Content.Load<Texture2D>("casa");
+
+
+
+            _GameOverTexture = Content.Load<Texture2D>("GameOver");// Pantalla de game over
+
+            //Sprite del menú
+            _menuTexture = Content.Load<Texture2D>("menu.png");
+
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            _fuente = Content.Load<SpriteFont>("File");
+
+            _pixeles = new Texture2D(GraphicsDevice, 1, 1);
+            _pixeles.SetData(new[] { Color.White });
+        }
+        protected override void Update(GameTime gameTime)
+        {
+            MouseState mouse = Mouse.GetState();
+            KeyboardState teclado = Keyboard.GetState();
+
+            if (teclado.IsKeyDown(Keys.Escape))
+                Exit();
+
+            // Movimiento con WASD cuando se está jugando
+            if (_estadoActual == EstadoJuego.Jugando)
+            {
+                // Esto hace que los dias avancen solos
+                float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                _tiempoDia += deltaTime;
+
+                Rectangle rectJugadorTemp = new Rectangle((int)_posicionJugador.X, (int)_posicionJugador.Y, _tamanoJugador, _tamanoJugador);
+                bool dentroDelRefugio = false;
+                if (_refugioconstruido)
+                {
+                    dentroDelRefugio = rectJugadorTemp.Intersects(_refugio);
+                }
+
+                // Esto hace que vaya pasando el dia luego de 10 segundos (por Ahora).Tambien se encarga de hacer funcionar el sistema de "Supervivencia"
+                if (_tiempoDia >= 20f)
+                {
+                    _diaActual++;
+                    _tiempoDia = 0f;
+                    _hambre -= 5;
+                    _energia -= 8;
+
+                    //sistema de eventos
+                    int clima = _random.Next(5);
+
+                    if (clima == 0)
+                    {
+                        _climaActual = "Normal";
+                    }
+                    else if (clima == 1)
+                    {
+                        _climaActual = "Lluvia";
+
+                        ConexionBD.GuardarEvento("Lluvia");
+
+                        if (!dentroDelRefugio)
+                        {
+                            _salud -= 5;
+                            _moral -= 5;
+                        }
+                    }
+                    else if (clima == 2)
+                    {
+                        _climaActual = "Tormenta";
+                        
+                            if (!dentroDelRefugio)
+                            {
+                                _salud -= 15;
+                                _energia -= 20;
+                            }
+                        ConexionBD.GuardarEvento("Tormenta");
+
+
+                        if (_refugioconstruido) //Hace que cuando haya tormenta la casa pierda vida
+                        {
+                            _vidaRefugio -= 10;
+
+                            if (_vidaRefugio < 0)
+                            {
+                                _vidaRefugio = 0;
+                            }
+                        }
+                        if (_vidaRefugio <= 0)
+                        {
+                            _refugioconstruido = false;
+                        }
+
+                    }
+                    else if (clima == 3)
+                    {
+                        _climaActual = "Ola de Calor";
+                        
+                            _hambre -= 2;
+                        ConexionBD.GuardarEvento("Ola de Calor");
+
+                    }
+                    else
+                    {
+                        _climaActual = "Noche Fria";
+                        if (!dentroDelRefugio)
+                        {
+                            _moral -= 15;
+                        }
+                        ConexionBD.GuardarEvento("Noche Fria");
+                    }
+
+                    if (_hambre <= 0)
+                    {
+                        _salud -= 10;
+                    }
+
+                    // Sistema de Moral segun el refugio
+                    if (_refugioconstruido && rectJugadorTemp.Intersects(_refugio))
+                    {
+                        _moral += 15; // Estar a salvo recupera moral
+                        if (_moral > 100) _moral = 100;
+                    }
+                    else
+                    {
+                        _moral -= 10; // La intemperie desgasta la moral
+                    }
+
+                    if (_moral <= 0)
+                    {
+                        _moral = 0;
+                        _salud -= 5; // La baja moral reduce la salud
+                    }
+
+                    //regeneración de recursos
+
+                    for (int i = 0; i < _mapaRecursos.Length; i++)
+                    {
+                        if (!_mapaRecursos[i].Activo)
+                        {
+                            if (_random.Next(100) < 5)
+                            {
+                                _mapaRecursos[i].Activo = true;
+
+                                if (_mapaRecursos[i].Tipo == TipoRecurso.Agua)
+                                {
+                                    _mapaRecursos[i].Area = new Rectangle(_random.Next(800, 1200),_random.Next(500, 750),20,20);
+                                }
+                                else if (_mapaRecursos[i].Tipo == TipoRecurso.Madera)
+                                {
+                                    if (_random.Next(2) == 0)
+                                    {
+                                        _mapaRecursos[i].Area =
+                                        new Rectangle(
+                                            _random.Next(50, 500),
+                                            _random.Next(50, 950),
+                                            25,
+                                            25);
+                                    }
+                                    else
+                                    {
+                                        _mapaRecursos[i].Area =
+                                        new Rectangle(
+                                            _random.Next(1400, 1850),
+                                            _random.Next(50, 950),
+                                            25,
+                                            25);
+                                    }
+                                }
+                                else
+                                {
+                                    _mapaRecursos[i].Area =
+                                    new Rectangle(
+                                        _random.Next(500, 1400),
+                                        _random.Next(250, 850),
+                                        20,
+                                        20);
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+
+                if (_energia >= 80)
+                {
+                    _velocidadJugador = 250f;
+                }
+                else if (_energia >= 60)
+                {
+                    _velocidadJugador = 200f;
+                }
+                else if (_energia >= 40)
+                {
+                    _velocidadJugador = 150f;
+                }
+                else if (_energia >= 20)
+                {
+                    _velocidadJugador = 100f;
+                }
+                else
+                {
+                    _velocidadJugador = 50f;
+                }
+
+                if (_energia < 0)
+                {
+                    _energia = 0;
+                }
+                if (_hambre < 0)
+                {
+                    _hambre = 0;
+                }
+
+                if (_salud < 0)
+                {
+                    _salud = 0;
+                }
+
+                //record de dias
+                if (_diaActual > _recordDias)
+                {
+                    _recordDias = _diaActual;
+                }
+
+
+                if (_salud <= 0)
+                {
+                    ConexionBD.GuardarPartida(0,_diaActual); //guarda el game over en la base de datos
+
+                    ConexionBD.GuardarEstadoJugador(_salud,_hambre,_energia,_moral);
+
+                    ConexionBD.GuardarInventario(_inventarioComida,_inventarioAgua,_inventarioMadera);
+                    
+                    _salud = 0;
+
+                    _estadoActual = EstadoJuego.GameOver;
+                }
+
+                // al llegar al dia 5 el moustro aparece
+                if (_diaActual >= 5)
+                {
+                    _monstruoActivo = true;
+                }
+
+
+                Vector2 posicionAnterior = _posicionJugador;
+
+                //Permite el jugador moverse con(WASD)
+                if (teclado.IsKeyDown(Keys.W)) _posicionJugador.Y -= _velocidadJugador * deltaTime;
+                if (teclado.IsKeyDown(Keys.S)) _posicionJugador.Y += _velocidadJugador * deltaTime;
+                if (teclado.IsKeyDown(Keys.A)) _posicionJugador.X -= _velocidadJugador * deltaTime;
+                if (teclado.IsKeyDown(Keys.D)) _posicionJugador.X += _velocidadJugador * deltaTime;
+
+                Rectangle rectJugadorNuevo = new Rectangle((int)_posicionJugador.X,(int)_posicionJugador.Y,_tamanoJugador,_tamanoJugador);
+
+                for (int i = 0; i < _obstaculos.Length; i++)
+                {
+                    if (rectJugadorNuevo.Intersects(_obstaculos[i]))
+                    {
+                        _posicionJugador = posicionAnterior;
+                    }
+                }
+
+                //Movimiento del moustro
+                if (_monstruoActivo)
+                {
+                    if (!dentroDelRefugio)
+                    {
+                        if (_monstruo.X < _posicionJugador.X)
+                            _monstruo.X += (int)(_velocidadMonstruo * deltaTime);
+                        else if (_monstruo.X > _posicionJugador.X)
+                            _monstruo.X -= (int)(_velocidadMonstruo * deltaTime);
+
+                        if (_monstruo.Y < _posicionJugador.Y)
+                            _monstruo.Y += (int)(_velocidadMonstruo * deltaTime);
+                        else if (_monstruo.Y > _posicionJugador.Y)
+                            _monstruo.Y -= (int)(_velocidadMonstruo * deltaTime);
+                    }
+                    else if (_refugioconstruido)
+                    {
+                        if (_monstruo.X < _refugio.X)
+                            _monstruo.X += (int)(_velocidadMonstruo * deltaTime);
+                        else if (_monstruo.X > _refugio.X)
+                            _monstruo.X -= (int)(_velocidadMonstruo * deltaTime);
+
+                        if (_monstruo.Y < _refugio.Y)
+                            _monstruo.Y += (int)(_velocidadMonstruo * deltaTime);
+                        else if (_monstruo.Y > _refugio.Y)
+                            _monstruo.Y -= (int)(_velocidadMonstruo * deltaTime);
+                    }
+                }
+
+                // Límites de pantalla para no salirse (Ajustado a las variables del mapa)
+                _posicionJugador.X = MathHelper.Clamp(_posicionJugador.X, 0, _anchoMapa - _tamanoJugador);
+                _posicionJugador.Y = MathHelper.Clamp(_posicionJugador.Y, 0, _altoMapa - _tamanoJugador);
+
+                //coliciones
+                Rectangle rectJugador = new Rectangle((int)_posicionJugador.X, (int)_posicionJugador.Y, _tamanoJugador, _tamanoJugador);
+
+                //Daño del mostruo
+                if (_monstruoActivo && !dentroDelRefugio)
+                {
+                    if (rectJugador.Intersects(_monstruo))
+                    {
+                        _salud -= 20;
+
+                        _monstruo = new Rectangle(_random.Next(100, 1800),_random.Next(100, 900),50,50);
+                    }
+                }
+
+                if (_monstruoActivo && _refugioconstruido)
+                {
+                    if (_monstruo.Intersects(_refugio))
+                    {
+                        _temporizadorAtaqueCasa += deltaTime;
+
+                        if (_temporizadorAtaqueCasa >= 2f)
+                        {
+                            _vidaRefugio -= 10;
+
+                            _temporizadorAtaqueCasa = 0f;
+                        }
+                    }
+                }
+
+                if (_vidaRefugio <= 0)
+                {
+                    _vidaRefugio = 0;
+                    _refugioconstruido = false;
+                }
+
+                //acá detectamos las coliciones y recogemos los recursos
+                for (int i = 0; i < _mapaRecursos.Length; i++)
+                {
+                    // Solo interactuamos si el recurso sigue activo en el mapa
+                    if (_mapaRecursos[i].Activo)
+                    {
+                        // Intersects verifica si el cuadrado del jugador se solapa con el del recurso
+                        if (rectJugador.Intersects(_mapaRecursos[i].Area))
+                        {
+                            // Sumamos al inventario según el tipo
+                            if (_mapaRecursos[i].Tipo == TipoRecurso.Comida)
+                            {
+                                _inventarioComida++;
+                            }
+                            else if (_mapaRecursos[i].Tipo == TipoRecurso.Agua)
+                            {
+                                _inventarioAgua++;
+                            }
+                            else if (_mapaRecursos[i].Tipo == TipoRecurso.Madera)
+                            {
+                                _inventarioMadera++;
+                            }
+
+                            // Al ser recolectado, lo desactivamos para que no se dibuje ni se vuelva a agarrar
+                            _mapaRecursos[i].Activo = false;
+                        }
+                    }
+                }
+
+                //SISTEMA DE COMER (Presionar tecla 'C')
+                // Comprobamos si la letra c ya esta presionada o no
+                if (teclado.IsKeyDown(Keys.C) && _tecladoAnterior.IsKeyUp(Keys.C))
+                {
+                    if (_inventarioComida > 0)
+                    {
+                        _inventarioComida--;
+                        _hambre += 30; // Recupera 30 de hambre
+                        ConexionBD.GuardarDecision("Comer");
+                        ConexionBD.GuardarEfecto(30);
+                        _salud += 10;
+
+                        if (_salud > 100)
+                        {
+                            _salud = 100;
+                        }
+
+                        // Tope máximo de hambre en 100
+                        if (_hambre > 100)
+                        {
+                            _hambre = 100;
+                        }
+                    }
+                }
+
+                //Sistema para tomar agua (Al precionar la letra B)
+                if (teclado.IsKeyDown(Keys.B) && _tecladoAnterior.IsKeyUp(Keys.B))
+                {
+                    if (_inventarioAgua > 0)
+                    {
+                        _inventarioAgua--;
+                        _energia += 30; // El jugador recupera 30 de Energia
+                        ConexionBD.GuardarDecision("Beber");
+                        ConexionBD.GuardarEfecto(30);
+
+                        // Tope máximo de Energia que puede recuperar el jugador (100)
+                        if (_energia > 100)
+                        {
+                            _energia = 100;
+                        }
+                    }
+                }
+
+                //Sistema para hacer un refugio con la madera
+                if (teclado.IsKeyDown(Keys.T) && _tecladoAnterior.IsKeyUp(Keys.T))
+                {
+                    if (_inventarioMadera >= 2)
+                    {
+                        if (_refugioconstruido == false)
+                        {
+                            _inventarioMadera -= 2;
+
+                            _refugioconstruido = true;
+                            ConexionBD.GuardarDecision("Construir Refugio");
+
+                            _vidaRefugio = 100;
+
+                            _refugio = new Rectangle((int)_posicionJugador.X, (int)_posicionJugador.Y, 150, 150);
+                        }
+                    }
+                }
+
+                //sistema para reparar refugio
+                if (teclado.IsKeyDown(Keys.R) && _tecladoAnterior.IsKeyUp(Keys.R))
+                {
+                    if (_inventarioMadera >= 2)
+                    {
+                        if (_refugioconstruido)
+                        {
+                            _inventarioMadera -= 2;
+
+                            _vidaRefugio += 20;
+
+                            if (_vidaRefugio > 100)
+                            {
+                                _vidaRefugio = 100;
+                            }
+                        }
+                    }
+                }
+
+                // Calculo de la Camara para seguir al jugador
+                // Definimos el zoom y limitamos la cámara con Clamp para evitar ver fuera del mapa
+                float zoom = 3.5f; // Acá se puede ajustar el zoom
+                Vector2 centroJugador = new Vector2(_posicionJugador.X + (_tamanoJugador / 2), _posicionJugador.Y + (_tamanoJugador / 2));
+
+                float anchoVisibleMundo = _graphics.PreferredBackBufferWidth / zoom;
+                float altoVisibleMundo = _graphics.PreferredBackBufferHeight / zoom;
+
+                Vector2 posicionCamara = centroJugador;
+
+                // Restringimos el movimiento de la cámara a los bordes del mapa (asi no se ve por fuera de el mapa)
+                posicionCamara.X = MathHelper.Clamp(posicionCamara.X, anchoVisibleMundo / 2f, _anchoMapa - (anchoVisibleMundo / 2f));
+                posicionCamara.Y = MathHelper.Clamp(posicionCamara.Y, altoVisibleMundo / 2f, _altoMapa - (altoVisibleMundo / 2f));
+
+                _camaraMatriz = Matrix.CreateTranslation(new Vector3(-posicionCamara.X, -posicionCamara.Y, 0)) * Matrix.CreateScale(zoom) * Matrix.CreateTranslation(new Vector3(_graphics.PreferredBackBufferWidth / 2f, _graphics.PreferredBackBufferHeight / 2f, 0));
+
+            }
+
+            // Detección de clics en el menú
+            if (mouse.LeftButton == ButtonState.Released && _mouseAnterior.LeftButton == ButtonState.Pressed)
+            {
+                Point pos = new Point(mouse.X, mouse.Y);
+
+                if (_estadoActual == EstadoJuego.Menu)
+                {
+                    if (_btnIniciar.Contains(pos))
+                    {
+                        _estadoActual = EstadoJuego.Jugando;
+                    }
+                    else if (_btnHistorial.Contains(pos))
+                    {
+                        var datos = ConexionBD.ObtenerHistorial();
+
+                        for (int i = 0;i < datos.Count && i < 5;i++)
+                        {
+                            _historial[i] = datos[i];
+                        }
+
+                        _estadoActual = EstadoJuego.Historial;
+                    }
+                    else if (_btnSalir.Contains(pos))
+                    {
+                        Exit();
+                    }
+                }
+                else if (_estadoActual == EstadoJuego.Jugando || _estadoActual == EstadoJuego.Historial)
+                {
+                    if (_btnVolverMenu.Contains(pos))
+                    {
+                        _estadoActual = EstadoJuego.Menu;
+                    }
+                }
+            }
+
+            _tecladoAnterior = teclado;
+            _mouseAnterior = mouse;
+            base.Update(gameTime);
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            if (_estadoActual == EstadoJuego.Menu)
+            {
+                _spriteBatch.Begin();
+                GraphicsDevice.Clear(Color.CornflowerBlue);
+
+                // Botones del Menú Principal
+                _spriteBatch.Draw(_menuTexture,new Rectangle(0,0,_graphics.PreferredBackBufferWidth,_graphics.PreferredBackBufferHeight),Color.White);
+
+             
+                _spriteBatch.End();
+            }
+            else if (_estadoActual == EstadoJuego.Jugando)
+            {
+                // Dibujo del Mundo con Camara
+                // Usamos SamplerState.PointClamp para evitar que los píxeles se vean borrosos al aplicar zoom
+                _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, _camaraMatriz);
+
+                // sprite del mapa 
+                Color colorClima = Color.White;
+
+                if (_climaActual == "Lluvia")
+                {
+                    colorClima = Color.LightBlue;
+                }
+                else if (_climaActual == "Tormenta")
+                {
+                    colorClima = new Color(60,60,60);
+                }
+                else if (_climaActual == "Ola de Calor")
+                {
+                    colorClima = Color.Orange;
+                }
+                else if (_climaActual == "Noche Fria")
+                {
+                    colorClima = Color.LightGray;
+                }
+
+                _spriteBatch.Draw(_mapaTexture,new Rectangle(0, 0, _anchoMapa, _altoMapa),colorClima);
+
+
+                //Dibujo de refugio
+                if (_refugioconstruido)
+                {
+                    _spriteBatch.Draw(_casaTexture,_refugio,Color.White);
+                }
+
+                if (_monstruoActivo)
+                {
+                    _spriteBatch.Draw(
+    _monstruoTexture,
+    _monstruo,
+    Color.White);
+                }
+
+                for (int i = 0; i < _mapaRecursos.Length; i++)
+                {
+                    //  dibujamos los recursos que NO han sido recolectados
+                    if (_mapaRecursos[i].Activo)
+                    {
+                        if (_mapaRecursos[i].Tipo == TipoRecurso.Comida)
+                        {
+                            _spriteBatch.Draw(_comidaTexture,_mapaRecursos[i].Area,Color.White);
+                        }
+                        else if (_mapaRecursos[i].Tipo == TipoRecurso.Agua)
+                        {
+                            _spriteBatch.Draw(_aguaTexture,_mapaRecursos[i].Area,Color.White);
+                        }
+                        else if (_mapaRecursos[i].Tipo == TipoRecurso.Madera)
+                        {
+                            _spriteBatch.Draw(_maderaTexture,_mapaRecursos[i].Area,Color.White);
+                        }
+                    }
+                }
+
+                // Personaje del Jugador ( movible con WASD)
+                Rectangle rectJugador = new Rectangle((int)_posicionJugador.X, (int)_posicionJugador.Y, _tamanoJugador, _tamanoJugador);// sprite del jugador (provisional)
+
+                _spriteBatch.Draw(_jugadorTexture, rectJugador, Color.White);
+
+                _spriteBatch.End();
+
+
+                // Dibujo del HUD Fijo en Pantalla (sin camara)
+                _spriteBatch.Begin();
+
+                // Marcador para ver las estadisticas o diferentes atributos del jugador
+                _spriteBatch.DrawString(_fuente, "Dia " + _diaActual, new Vector2(1700, 20), Color.White);
+                _spriteBatch.DrawString(_fuente, "Hambre " + _hambre, new Vector2(1700, 40), Color.White);
+                _spriteBatch.DrawString(_fuente, "Energia " + _energia, new Vector2(1700, 60), Color.White);
+                _spriteBatch.DrawString(_fuente, "Velocidad " + _velocidadJugador, new Vector2(1700, 80), Color.White);
+                _spriteBatch.DrawString(_fuente, "Salud " + _salud, new Vector2(1700, 100), Color.White);
+                _spriteBatch.DrawString(_fuente, "Moral " + _moral, new Vector2(1700, 120), Color.White);
+                _spriteBatch.DrawString(_fuente, "Clima: " + _climaActual, new Vector2(1700, 140), Color.Orange);
+
+                // INVENTARIO (HUD)
+                _spriteBatch.DrawString(_fuente, "--- INVENTARIO ---", new Vector2(1700, 160), Color.Yellow);
+                _spriteBatch.DrawString(_fuente, "Comida: " + _inventarioComida, new Vector2(1700, 180), Color.White);
+                _spriteBatch.DrawString(_fuente, "Agua: " + _inventarioAgua, new Vector2(1700, 200), Color.White);
+                _spriteBatch.DrawString(_fuente, "Madera: " + _inventarioMadera, new Vector2(1700, 220), Color.White);
+                _spriteBatch.DrawString(_fuente, "[C] Comer", new Vector2(1700, 250), Color.Red);
+                _spriteBatch.DrawString(_fuente, "[B] Tomar Agua", new Vector2(1700, 280), Color.Red);
+                _spriteBatch.DrawString(_fuente, "[T] Construir Casa", new Vector2(1700, 310), Color.Red);
+                _spriteBatch.DrawString(_fuente, "[R] Reparar la Casa", new Vector2(1700, 340), Color.Red);
+                _spriteBatch.DrawString(_fuente,"Casa: " + _vidaRefugio,new Vector2(1700, 400),Color.White);
+                _spriteBatch.DrawString(_fuente,"Record: " + _recordDias,new Vector2(1700, 360),Color.Yellow);
+
+                // Botón Volver al Menú
+                _spriteBatch.Draw(_pixeles, _btnVolverMenu, Color.Gray);
+                _spriteBatch.DrawString(_fuente, "Volver", new Vector2(_btnVolverMenu.X + 20, _btnVolverMenu.Y + 8), Color.White);
+
+                _spriteBatch.End();
+            }
+            else if (_estadoActual == EstadoJuego.Historial)
+            {
+                _spriteBatch.Begin();
+
+                GraphicsDevice.Clear(
+                Color.DarkBlue);
+
+                _spriteBatch.DrawString(
+                _fuente,
+                "ULTIMAS PARTIDAS",
+                new Vector2(650, 100),
+                Color.Yellow);
+
+                for (int i = 0; i < 5; i++)
+                {
+                    if (_historial[i] != null)
+                    {
+                        _spriteBatch.DrawString(
+                        _fuente,
+                        _historial[i],
+                        new Vector2(
+                            600,
+                            200 + (i * 100)),
+                        Color.White);
+                    }
+                }
+
+                _spriteBatch.Draw(
+                _pixeles,
+                _btnVolverMenu,
+                Color.Gray);
+
+                _spriteBatch.DrawString(
+                _fuente,
+                "Volver",
+                new Vector2(
+                _btnVolverMenu.X + 20,
+                _btnVolverMenu.Y + 8),
+                Color.White);
+
+                _spriteBatch.End();
+            }
+
+            else if (_estadoActual == EstadoJuego.GameOver)
+            {
+                _spriteBatch.Begin();
+                _spriteBatch.Draw(_GameOverTexture, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight), Color.White);
+                _spriteBatch.End();
+            }
+
+            base.Draw(gameTime);
+        }
+    }
+}
